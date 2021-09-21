@@ -1,0 +1,62 @@
+﻿@model IEnumerable<Lend>
+@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>Lend List</h2>
+
+<br />
+@if (!Model.Any())
+{
+    <p>No book is lent.</p>
+}
+else
+{
+    <table id="lends" class="table table-bordered table-hover">
+        <thead>
+            <tr>
+                <th>Borrower Name & Last Name</th>
+                <th>Book(s)</th>
+                <th>Date Lent</th>
+                <th>Return Date</th>
+                <th>Modify</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var lend in Model)
+            {
+                    <tr>
+                        <td>@lend.Borrower.Name @lend.Borrower.Surname</td>
+                        @*<td>
+                            @foreach (var item in lend.LendDetails)
+                            {
+                                @item.Book.Title @Html.ActionLink(" Delete", "DeleteBookFromLend", "Lends", new { id = item.Id }, new { onclick = "return confirm('Are you sure you want to delete this book from the lend?');" }) <br />
+                            }
+                        </td>*@
+                        <td>@lend.DateLent.ToShortDateString()</td>
+                        <td>@lend.ReturnDate.ToShortDateString()</td>
+                        <td>
+                            <a asp-action="DeleteLend" asp-controller="Lends" asp-route="lend.Id" >Delete</a>
+                            @Html.ActionLink("Delete", "DeleteLend", "Lends", new {id = lend.Id}, new {onclick = "return confirm('Are you sure you want to delete this lend?');"}) <br/>
+                        </td>
+                    </tr>
+            }
+        </tbody>
+    </table>
+    @Html.AntiForgeryToken()
+
+    <p>
+        @Html.ActionLink("New Lend", "SelectBorrower", "Lends", new { @class = "btn btn-primary" })
+    </p>
+}
+
+
+@section scripts
+{
+    <script>
+        $(document).ready(function () {
+            $("#lends").DataTable();
+        });
+    </script>
+}

@@ -1,0 +1,33 @@
+﻿@model Book
+@{
+    ViewBag.Title = Model.Title;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>Book Details</h2>
+
+<ul>
+    <li>Title: @Model.Title</li>
+    <li>Author: @Model.Author</li>
+    <li>Publisher: @Model.Publisher</li>
+    <li>Year Published: @Model.YearPublished</li>
+    <li>Date Added To The Library: @Model.DateAddedToLibrary.ToLongDateString()</li>
+    <li>Number in Stock: @Model.NumberInStock</li>
+    <li>Category: @Model.Category.CategoryName</li>
+    <li>Number of Pages: @Model.Page</li>
+    <li>Image Name: @Model.ImageName </li>
+    <li>Image: <br/>
+        @if (@Model.ImageName != null)
+        {
+            <img src="@("~/image/"+@Model.ImageName)" asp-append-version="true" height="250" />
+        }
+        else
+        {<p>No Image Uploaded</p>
+        }
+    </li>
+</ul>
+<div>
+    <a asp-action="Edit" asp-route-id="@Model.BookId">Edit</a> |
+    <a asp-action="Index">Back to List</a>
+</div>
+

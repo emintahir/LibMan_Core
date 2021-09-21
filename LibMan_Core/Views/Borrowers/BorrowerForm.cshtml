@@ -1,0 +1,47 @@
+﻿@model LibMan_Core.ViewModels.BorrowerFormViewModel
+
+@{
+    ViewBag.Title = @Model.BorrowerFormPageTitle;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>@Model.BorrowerFormPageTitle</h2>
+
+
+
+<form asp-controller="Borrowers" asp-action="Save">
+    <div asp-validation-summary="ModelOnly"></div>
+    <div class="form-group">
+        <label asp-for="Borrower.Name"></label>
+        <input asp-for="Borrower.Name" class="form-control" />
+        <span asp-validation-for="Borrower.Name" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <label asp-for="Borrower.Surname"></label>
+        <input asp-for="Borrower.Surname" class="form-control" />
+        <span asp-validation-for="Borrower.Surname" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <label asp-for="Borrower.NationalId"></label>
+        <input asp-for="Borrower.NationalId" class="form-control" />
+        <span asp-validation-for="Borrower.NationalId" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <label asp-for="Borrower.BirthDate"></label>
+        <input asp-for="Borrower.BirthDate" class="form-control" />
+        <span asp-validation-for="Borrower.BirthDate" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <label asp-for="Borrower.Phone"></label>
+        <input asp-for="Borrower.Phone" class="form-control" />
+        <span asp-validation-for="Borrower.Phone" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <label asp-for="Borrower.Address"></label>
+        <input asp-for="Borrower.Address" class="form-control" />
+        <span asp-validation-for="Borrower.Address" class="text-danger"></span>
+    </div>
+    <input asp-for="Borrower.BorrowerId" type="hidden" />
+    <button type="submit" class="btn btn-primary">Save</button>
+</form>
+

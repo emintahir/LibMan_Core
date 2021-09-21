@@ -1,0 +1,15 @@
+﻿@model Borrower
+@{
+    ViewBag.Title = @Model.Name;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>Borrower Details</h2>
+<ul>
+    <li>Name: @Model.Name</li>
+    <li>Surname: @Model.Surname</li>
+    <li>National ID Number: @Model.NationalId</li>
+    <li>Date of Birth: @Model.BirthDate.ToLongDateString()</li>
+    <li>Phone Number: @Model.Phone</li>
+    <li>Address: @Model.Address</li>
+</ul>
