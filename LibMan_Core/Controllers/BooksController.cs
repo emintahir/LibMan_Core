@@ -4,9 +4,12 @@ using LibMan_Core.ViewModels;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Linq;
 using System;
 using System.IO;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using System.Collections.Generic;
 
 namespace LibMan_Core.Controllers
 {
@@ -32,17 +35,11 @@ namespace LibMan_Core.Controllers
         {
             var books = await _db.Books.Include(b => b.Category).ToListAsync();
             return View("Index", books);
-            //if (User.IsInRole(RoleName.CanManage))
-            //{
-            //    return View("Index", books);
-            //}
-
-            //return View("IndexRO", books);
         }
 
         public async Task<IActionResult> Details(int id)
         {
-            Book book = await _db.Books.Include(b => b.Category).SingleOrDefaultAsync(b => b.BookId == id);
+            Book book = await _db.Books.Include(b => b.Category).SingleOrDefaultAsync(b => b.Id == id);
             if (book == null)
             {
                 return NotFound();
@@ -50,87 +47,103 @@ namespace LibMan_Core.Controllers
             return View(book);
         }
 
-        //[Authorize(Roles = RoleName.CanManage)]
-        public async Task<IActionResult> New()
+        public IActionResult New()
         {
-            var bookFormViewModel = new BookFormViewModel
+            var book = new Book
             {
-                Book = new Book(),
-                Categories = await _db.Categories.ToListAsync()
+                DateAddedToLibrary = DateTime.Today,
+                Category = new Category()
             };
-            return View("BookForm", bookFormViewModel);
+            ViewData["Categories"] = new SelectList(_db.Categories, "Id", "Name");
+            return View("BookForm", book);
         }
 
-
-        //[Authorize(Roles = RoleName.CanManage)]
         public async Task<IActionResult> Edit(int id)
         {
-            var book = await _db.Books.Include(b => b.Category).SingleOrDefaultAsync(b => b.BookId == id);
+            var book = await _db.Books.Include(b => b.Category).SingleOrDefaultAsync(b => b.Id == id);
             if (book == null)
             {
                 return NotFound();
             }
-            var bookFormViewModel = new BookFormViewModel
-            {
-                Book = book,
-                Categories = await _db.Categories.ToListAsync()
-            };
-            return View("BookForm", bookFormViewModel);
+            ViewData["Categories"] = new SelectList(_db.Categories, "Id", "Name");
+            return View("BookForm", book);
         }
 
-        //[Authorize(Roles = RoleName.CanManage)]
-        [ValidateAntiForgeryToken]
-        [HttpPost]
-        public async Task<IActionResult> Save(BookFormViewModel bookFormViewModel)
+        //[ValidateAntiForgeryToken]
+        //[HttpPost]
+        public async Task<IActionResult> Save(Book book, string deleteImage)
         {
             if (!ModelState.IsValid)
             {
-                bookFormViewModel = new BookFormViewModel
+                var newBook = new Book
                 {
-                    Book = new Book(),
-                    Categories = await _db.Categories.ToListAsync()
+                    DateAddedToLibrary = DateTime.Today,
+                    Category = new Category()
                 };
-                return View("BookForm", bookFormViewModel);
+                return View("BookForm", newBook);
             }
-
-            if (bookFormViewModel.Book.BookId == 0) //New Book
+            // New Book
+            if (book.Id == 0) 
             {
-                bookFormViewModel.Book.DateAddedToLibrary = DateTime.Today;
-                bookFormViewModel.Book.ImageName = UploadImage(bookFormViewModel.Book);
-                _db.Books.Add(bookFormViewModel.Book);
-            }
-            else //book.Id != 0 Edit existing book
-            {
-                var bookInDb = await _db.Books.FindAsync(bookFormViewModel.Book.BookId);
-                if (bookFormViewModel.Book.ImageFile == null) //No Image chosen for upload
+                // User selected to upload an image
+                if (book.ImageFile!=null) 
                 {
-                    if (bookFormViewModel.DeleteImage == "1") //Existing Image selected to delete
+                    UploadImage(book);
+                    book.ImageName = GetNameForImageFile(book);
+                }
+                // No Image selected for book
+                else
+                {
+                    book.ImageName = null;
+                }
+                _db.Books.Add(book);
+            }
+            // Edit existing book (book.Id != 0 )
+            else
+            {
+                //The book has already an image
+                if (book.ImageName!=null)
+                {
+                    //New Image selected to upload
+                    if (book.ImageFile!=null)
                     {
-                        DeleteImage(bookInDb);
-                        bookInDb.ImageName = null;
+                        DeleteImageFile(book.ImageName);
+                        UploadImage(book);
+                        book.ImageName = GetNameForImageFile(book);
                     }
+                    //No Image selected to upload
                     else
                     {
-                        bookFormViewModel.Book.ImageName = bookInDb.ImageName;
+                        //If users selected to delete the image
+                        if (deleteImage=="on") 
+                        {
+                            DeleteImageFile(book.ImageName);
+                            book.ImageName = null;
+                        }
+                        //If users didn't select to delete the image
+                        else
+                        {
+                            book.ImageName = RenameImageFile(book);
+                        }
                     }
                 }
-                else //Image selected for upload
+                //The book does not have any photo
+                else 
                 {
-                    if (bookInDb.ImageName!=null) //If had image prev
+                    //New Image selected to upload
+                    if (book.ImageFile!=null) 
                     {
-                        DeleteImage(bookInDb);
+                        UploadImage(book);
+                        book.ImageName = GetNameForImageFile(book);
                     }
-                    bookInDb.ImageName = UploadImage(bookFormViewModel.Book);
-                };
-                _db.Entry(bookInDb).State = EntityState.Detached;
-                _db.Update(bookInDb);
+                }
+                _db.Update(book);
             }
             await _db.SaveChangesAsync();
             return RedirectToAction("Index", "Books");
         }
 
 
-        //[Authorize(Roles = RoleName.CanManage)]
         //[HttpPost]
         //[ValidateAntiForgeryToken]
         public async Task<IActionResult> Delete(int id)
@@ -144,7 +157,7 @@ namespace LibMan_Core.Controllers
             {
                 if (bookInDb.ImageName != null) //If had image prev
                 {
-                    DeleteImage(bookInDb);
+                    DeleteImageFile(bookInDb.ImageName);
                 }
                 _db.Books.Remove(bookInDb);    
             }
@@ -152,34 +165,43 @@ namespace LibMan_Core.Controllers
             return RedirectToAction("Index", "Books");
         }
 
-        private string UploadImage(Book book)
+        private async void UploadImage(Book book) //Uploads Image File to wwwwroot/image Folder
         {
-            string newFileName = null;
             if (book.ImageFile != null)
             {
                 string uploadFolder = Path.Combine(_webHostEnvironment.WebRootPath, "image");
-                string fileExtension = Path.GetExtension(book.ImageFile.FileName);
-                newFileName = book.BookId + "_" + book.Title + "_" + DateTime.Now.ToString("ddMMyyyy") + fileExtension;
+                string newFileName = GetNameForImageFile(book);
                 string newFilePath = Path.Combine(uploadFolder, newFileName);
                 using var fileStream = new FileStream(newFilePath, FileMode.Create);
-                book.ImageFile.CopyTo(fileStream);
+                await book.ImageFile.CopyToAsync(fileStream);
             }
+        }
 
+        public string GetNameForImageFile(Book book) //Gets New Image File Name from IFormFile
+        {
+            string fileExtension = Path.GetExtension(book.ImageFile.FileName);
+            string newFileName = book.Id + "_" + book.Title + "_" + DateTime.Now.ToString("yyyyMMddHHmmss") + fileExtension;
             return newFileName;
         }
 
-
-        private void DeleteImage(Book book)
+        public string RenameImageFile(Book book) //Rename Existing Image to the new File Name
         {
-            if (book.ImageName != null)
-            {
-                string uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "image");
-                string filePath = Path.Combine(uploadsFolder, book.ImageName);
-                System.IO.File.Delete(filePath);
-            }
+            string uploadFolder = Path.Combine(_webHostEnvironment.WebRootPath, "image");
+            string fileExtension = Path.GetExtension(book.ImageName);
+            string newFileName = book.Id + "_" + book.Title + "_" + DateTime.Now.ToString("yyyyMMddHHmmss") + fileExtension;
+            string oldFilePath = Path.Combine(uploadFolder, book.ImageName);
+            string newFilePath = Path.Combine(uploadFolder, newFileName);
+            System.IO.File.Copy(oldFilePath, newFilePath);
+            DeleteImageFile(book.ImageName);
+            return newFileName;
         }
 
-
-
+        private void DeleteImageFile(string imageName)
+        {
+            if (imageName == null) return;
+            string uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "image");
+            string filePath = Path.Combine(uploadsFolder, imageName);
+            System.IO.File.Delete(filePath);
+        }
     }
 }

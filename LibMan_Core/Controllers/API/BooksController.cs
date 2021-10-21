@@ -70,17 +70,16 @@ namespace LibMan_Core.Controllers.API
             {
                 return NotFound();
             }
-
             bookInDb.Title = book.Title;
             bookInDb.Author = book.Author;
             bookInDb.Publisher = book.Publisher;
             bookInDb.ImageName = book.ImageName;
             bookInDb.NumberInStock = book.NumberInStock;
             bookInDb.YearPublished = book.YearPublished;
-            bookInDb.Page = book.Page;
+            bookInDb.Pages = book.Pages;
             bookInDb.CategoryId = book.CategoryId;
             await _db.SaveChangesAsync();
-            return Ok(bookInDb);
+            return Ok();
         }
 
 
@@ -97,7 +96,6 @@ namespace LibMan_Core.Controllers.API
             _db.Books.Remove(bookInDb);
             await _db.SaveChangesAsync();
             return Ok();
-
         }
     }
 }

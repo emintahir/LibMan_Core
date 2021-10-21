@@ -1,30 +1,71 @@
 ﻿@{
     ViewData["Title"] = "Home Page";
+    Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
 <div class="jumbotron">
     <h1>LibManCore  <i class="fas fa-book-open"></i></h1>
-    <p class="lead">Welcome to the LibMan Library Manager (Core Version) Page.</p>
+    <p class="lead">Welcome to the LibMan Library Manager (.NET Core) web application.</p>
 </div>
-
-
+<br/>
 <div class="row">
     <div class="col-md-6">
         <h3>Getting started</h3>
         <p>
-            Sign in with your account to manage Borrowers, Books and Book Lends. There are 2 account types which have the following
-            permissions:
+            The following classes are defined for the LibMan web application:
+            <ul>
+                <li><b>Book:</b> The user can view the list of books and update their information or remove them from the library. User can also upload an image for the book.</li>
+                <li><b>Category:</b> The user can define or modify the category of the books. Each book can have one category (One-to-One relationship).</li>
+                <li><b>Borrower:</b> In this part user can view, register or modify the Borrowers.</li>
+                <li><b>Lend:</b> In this section user can view the list of lends and modify them. Each borrower can have many lends and in each lend the borrower can borrow multiple books (Many-to-Many relationship).</li>
+            </ul>
         </p>
         <p>
-            <ul>
-                <li>Admin: Can Modify(View/Edit/Delete) Borrowers, Books and Lends;</li>
-                <li>Guest: Only can View the Borrowers, Books and Lends.</li>
-            </ul>
+            To see the relationship diagram please click here: <a type="button" href="#relationshipModal" data-toggle="modal">Relationship Diagram &raquo;</a>
         </p>
     </div>
     <div class="col-md-6">
-        <h3>Get more libraries</h3>
-        <p>NuGet is a free Visual Studio extension that makes it easy to add, remove, and update libraries and tools in Visual Studio projects.</p>
-        <p><a class="btn btn-default" href="https://go.microsoft.com/fwlink/?LinkId=301866">Learn more &raquo;</a></p>
+        <h3>jQuery plugins</h3>
+        <p>I used the following plugins in my project:</p>
+        <p><b>DataTable:</b> is a plug-in for the jQuery Javascript library. It`s a plugin that adds set of capabilities to the table like: Pagination, Instant Search, Sorting Column. <a href="https://datatables.net/">Learn more about DataTable &raquo;</a></p>
+        <p><b>Select2:</b> is a jQuery replacement for select boxes. It gives you a customizable select box with support for searching, tagging, remote data sets, infinite scrolling, and many other highly used options. <a href="https://select2.org/">Learn more about Select2 &raquo;</a></p>
     </div>
 </div>
+
+<div class="modal fade" id="relationshipModal" tabindex="-1" aria-labelledby="relationshipDiagram" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="erelationshipDiagram">Relationship Diagram</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <img class="img-fluid" src="~/img/diagram.png" />
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+@section Scripts
+{
+    <script>
+        $(document).ready(function(){
+            var animate = function() {
+                $("h1").animate({ opacity: 0.25 }, 1000, 'linear', function() {
+                    $(this).animate({ opacity: 1 }, 'linear');
+                    animate();
+                });
+            }
+            animate();
+        });
+    </script>
+}
+

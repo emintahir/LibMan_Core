@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -7,21 +8,34 @@ namespace LibMan_Core.Models
 {
     public class Lend
     {
+        [Key]
         public int Id { get; set; }
+
+        [Required]
         public int BorrowerId { get; set; }
 
         public Borrower Borrower { get; set; }
 
-        public int BookId { get; set; }
+        [Display(Name = "Lend Date:")]
+        [DataType(DataType.Date)]
+        [DisplayFormat(DataFormatString = "{0:yyyy-MM-dd}", ApplyFormatInEditMode = true)]
+        [Required]
+        public DateTime LendDate { get; set; }
 
-        public Book Book { get; set; }
+        [Display(Name = "Due Date:")]
+        [DataType(DataType.Date)]
+        [DisplayFormat(DataFormatString = "{0:yyyy-MM-dd}", ApplyFormatInEditMode = true)]
+        [Required]
+        public DateTime DueDate { get; set; }
 
-        public DateTime DateLent { get; set; }
-        public DateTime ReturnDate { get; set; }
-        
+        [Display(Name = "Borrower Returned The Book?")]
+        public bool IsReturned { get; set; }
 
-        
+        [Display(Name = "Return Date:")]
+        [DataType(DataType.Date)]
+        [DisplayFormat(DataFormatString = "{0:yyyy-MM-dd}", ApplyFormatInEditMode = true)]
+        public DateTime? ReturnDate { get; set; }
 
-
+        public ICollection<BookLend> BookLends { get; set; }
     }
 }

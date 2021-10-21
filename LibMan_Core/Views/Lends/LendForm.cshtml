@@ -1,5 +1,149 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
+﻿@model Lend
+
 @{
+    ViewData["Title"] =(Model.Id == 0 ? "New Book" : "Edit Book");
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>@(Model.Id == 0 ? "New Lend":"Edit Lend")</h2>
+<hr />
+<div class="row">
+    <div class="col-md-6">
+        <form asp-controller="Lends" asp-action="Save" asp-route-id="@Model.Id">
+            <input asp-for="Id" type="hidden"/>
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="form-group">
+                <label asp-for="Borrower.FullName" class="control-label"></label>
+                @if (Model.Id == 0) // New
+                {
+                    <select id="selectBorrower" asp-for="BorrowerId" class="form-control" asp-items="ViewBag.Borrowers"></select>
+                }
+                else // Edit
+                {
+                    <select asp-for="BorrowerId" class="form-control" asp-items="ViewBag.Borrowers" disabled></select>
+                    <input asp-for="BorrowerId" type="hidden"/>
+                }
+                <span asp-validation-for="BorrowerId" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="LendDate" class="control-label"></label>
+                <input asp-for="LendDate" class="form-control"/>
+                <span asp-validation-for="LendDate" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="DueDate" class="control-label"></label>
+                <input asp-for="DueDate" class="form-control"/>
+                <span asp-validation-for="DueDate" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="IsReturned" class="control-label"></label>
+                @if (Model.Id == 0)
+                {
+                    <input id="checkbox" type="checkbox" data-toggle="tooltip" data-placement="top" title="Check this box to enable the input tag for the IsReturned property." />
+                    <select asp-for="IsReturned" asp-items="ViewBag.YesNoSelectList" class="form-control" readonly></select>
+                }
+                else
+                {
+                    <select asp-for="IsReturned" asp-items="ViewBag.YesNoSelectList" class="form-control"></select>
+                }
+                <span asp-validation-for="IsReturned" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="ReturnDate" class="control-label"></label>
+                @if (Model.Id == 0 || !Model.IsReturned)
+                {
+                    <input asp-for="ReturnDate" class="form-control" readonly="readonly" />
+                }
+                else
+                {
+                    <input asp-for="ReturnDate" class="form-control"/>
+                }
+                <span asp-validation-for="ReturnDate" class="text-danger"></span>
+            </div>
+            <br/>
+            <div class="form-group">
+                <h5>List of Books</h5>
+                <hr/>
+                <table id="books" class="table table-bordered table-hover display">
+                    <thead>
+                    <tr>
+                        <th>Select</th>
+                        <th>Book Title</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    @{List<LibMan_Core.ViewModels.AssignedBookData> booksWA = ViewBag.Books;
+                        foreach (var book in booksWA)
+                        {
+                            <tr>
+                                <td>
+                                    <input type="checkbox"
+                                           name="selectedBooks"
+                                           value="@book.BookId"
+                                           @Html.Raw(book.IsAssigned ? "checked=\"checked\"" : "")/>
+                                </td>
+                                <td>@book.BookTitle</td>
+                            </tr>
+                        }
+                    }
+                    </tbody>
+                </table>
+                <span asp-validation-for="BookLends" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <input type="submit" value="Save" class="btn btn-success" onclick="javascript:return confirm('Are you sure you want to save the changes?');"/>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div>
+    <a asp-action="Index">Back to List</a>
+</div>
+@section Scripts {
+    @*@{await Html.RenderPartialAsync("_ValidationScriptsPartial");}*@
+    <script src="~/lib/select2/js/select2.js"></script>
+    <script src="~/lib/datatables/js/jquery.dataTables.js"></script>
+    <script src="~/lib/datatables/js/dataTables.bootstrap4.js"></script>
+    <script src="~/lib/datatables/AutoFill-2.3.7/js/dataTables.autoFill.js"></script>
+    <script>
+        $(document).ready(function () {
+            $("#selectBorrower").select2({
+                placeholder: "Select a Borrower",
+                allowClear: false
+            });
+        });
+        $(document).ready(function () {
+            $("#books").DataTable({
+                autoFill: true,
+                "autoWidth": false
+            });
+        });
+
+        $("#checkbox").click(function() {
+            if (this.checked) {
+                $("#IsReturned").removeAttr("readonly");
+            } else {
+                $("#IsReturned").attr("readonly", true);
+                $("#IsReturned").val("false");
+                $("#ReturnDate").attr("readonly", true);
+                $("#ReturnDate").val("");
+            };
+        });
+
+        $("#IsReturned").change(function () {
+            if ($("#IsReturned").val() === "true") {
+                $("#ReturnDate").removeAttr("readonly");
+            } else {
+                $("#ReturnDate").attr("readonly", true);
+                $("#ReturnDate").val("");
+
+            };
+        });
+
+        $(function() {
+            $('[data-toggle="tooltip"]').tooltip();
+        });
+  
+    </script>
 }

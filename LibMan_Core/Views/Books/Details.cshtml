@@ -1,4 +1,5 @@
-﻿@model Book
+﻿@using Microsoft.EntityFrameworkCore
+@model Book
 @{
     ViewBag.Title = Model.Title;
     Layout = "~/Views/Shared/_Layout.cshtml";
@@ -13,8 +14,8 @@
     <li>Year Published: @Model.YearPublished</li>
     <li>Date Added To The Library: @Model.DateAddedToLibrary.ToLongDateString()</li>
     <li>Number in Stock: @Model.NumberInStock</li>
-    <li>Category: @Model.Category.CategoryName</li>
-    <li>Number of Pages: @Model.Page</li>
+    <li>Category: @Model.Category.Name</li>
+    <li>Number of Pages: @Model.Pages</li>
     <li>Image Name: @Model.ImageName </li>
     <li>Image: <br/>
         @if (@Model.ImageName != null)
@@ -27,7 +28,7 @@
     </li>
 </ul>
 <div>
-    <a asp-action="Edit" asp-route-id="@Model.BookId">Edit</a> |
+    <a asp-action="Edit" asp-route-id="@Model.Id">Edit</a> |
     <a asp-action="Index">Back to List</a>
 </div>
 

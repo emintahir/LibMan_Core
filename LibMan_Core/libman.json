@@ -3,12 +3,16 @@
   "defaultProvider": "cdnjs",
   "libraries": [
     {
-      "library": "datatables@1.10.21",
-      "destination": "wwwroot/lib/datatables/"
-    },
-    {
       "library": "font-awesome@5.15.3",
       "destination": "wwwroot/lib/font-awesome/"
+    },
+    {
+      "library": "select2@4.0.13",
+      "destination": "wwwroot/lib/select2/"
+    },
+    {
+      "library": "datatables@1.10.21",
+      "destination": "wwwroot/lib/datatables/"
     }
   ]
 }

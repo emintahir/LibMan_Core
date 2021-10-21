@@ -9,7 +9,7 @@ namespace LibMan_Core.Models
     public class Borrower
     {
         [Key]
-        public int BorrowerId { get; set; }
+        public int Id { get; set; }
 
         [Display(Name = "National ID")]
         public string NationalId { get; set; }
@@ -24,8 +24,9 @@ namespace LibMan_Core.Models
         [Display(Name = "Surname")]
         public string Surname { get; set; }
 
-
         [Display(Name = "Date of Birth")]
+        [DataType(DataType.Date)]
+        [DisplayFormat(DataFormatString = "{0:yyyy-MM-dd}", ApplyFormatInEditMode = true)]
         public DateTime BirthDate { get; set; }
 
 
@@ -38,6 +39,9 @@ namespace LibMan_Core.Models
         [Display(Name = "Address")]
         public string Address { get; set; }
 
-        public virtual ICollection<Lend> Lends { get; set; }
+        public ICollection<Lend> Lends { get; set; }
+
+        [Display(Name = "Name & Surname")]
+        public string FullName => Name + " " + Surname;
     }
 }

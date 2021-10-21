@@ -6,7 +6,7 @@
             <span class="navbar-toggler-icon"></span>
         </button>
         <div class="navbar-collapse collapse d-sm-inline-flex flex-sm-row-reverse">
-            <partial name="_LoginPartial" />
+            @*<partial name="_LoginPartial" />*@
             <ul class="navbar-nav flex-grow-1">
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
@@ -28,11 +28,20 @@
                 </li>
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        Category
+                    </a>
+                    <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+                        <a class="dropdown-item" asp-area="" asp-controller="Categories" asp-action="Index">Category Management</a>
+                        <a class="dropdown-item" asp-area="" asp-controller="Categories" asp-action="Create">Add Category</a>
+                    </div>
+                </li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                         Lend
                     </a>
                     <div class="dropdown-menu" aria-labelledby="navbarDropdown">
                         <a class="dropdown-item" asp-area="" asp-controller="Lends" asp-action="Index">List of Lends</a>
-                        @*<a class="dropdown-item" asp-area="" asp-controller="Lends" asp-action="New">New Lend</a>*@
+                        <a class="dropdown-item" asp-area="" asp-controller="Lends" asp-action="New">New Lend</a>
                     </div>
                 </li>
             </ul>

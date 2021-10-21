@@ -7,12 +7,17 @@ using LibMan_Core.Data;
 using LibMan_Core.Models;
 using LibMan_Core.ViewModels;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace LibMan_Core.Controllers
 {
     public class LendsController : Controller
     {
+
         private readonly ApplicationDbContext _db;
 
         public LendsController(ApplicationDbContext db)
@@ -20,114 +25,204 @@ namespace LibMan_Core.Controllers
             _db = db;
         }
 
+        protected override void Dispose(bool disposing)
+        {
+            _db.Dispose();
+        }
 
         //GET: Lends
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
-            var lends = _db.Lends.ToList();
-            return View(lends);
+            var lends = await _db.Lends
+                .Include(l=>l.Borrower)
+                .Include(l=>l.BookLends)
+                    .ThenInclude(bl=>bl.Book)
+                        .ToListAsync();
+            return View("Index",lends);
         }
 
-        public IActionResult SelectBorrower()
+        public async Task<IActionResult> Details(int? id)
         {
-            var borrowers = _db.Borrowers.ToList();
-            return View("SelectBorrower", borrowers);
-        }
-
-
-        //[Authorize(Roles = RoleName.CanManage)]
-        public IActionResult New(int id)
-        {
-
-            var lendFormViewModel = new LendFormViewModel
+            if (id == null)
             {
-                Borrower = _db.Borrowers.Single(b => b.BorrowerId == id),
-                Books = _db.Books.ToList()
+                return NotFound();
+            }
+
+            var lend = await _db.Lends.FirstOrDefaultAsync(l => l.Id == id);
+            if (lend == null)
+            {
+                return NotFound();
+            }
+
+            return View(lend);
+        }
+
+        public IActionResult New()
+        {
+            var lend = new Lend
+            {
+                LendDate = DateTime.Today, 
+                DueDate = DateTime.Today.AddDays(10), 
+                BookLends = new List<BookLend>(),
+                Borrower = new Borrower()
             };
-
-            return View("LendForm", lendFormViewModel);
+            BorrowersSelectList();
+            YesNoSelectList();
+            PopulateAssignedBooks(lend);
+            return View("LendForm", lend);
         }
 
-
-        //public ActionResult Edit(int id)
-        //{
-        //    var lend = _db.LendBooks.Include(b => b.Book).SingleOrDefault(l => l.Id == id);
-        //    if (lend == null)
-        //    {
-        //        return HttpNotFound();
-        //    }
-
-        //    var lendBookFormViewModel = new LendBookFormViewModel
-        //    {
-        //        Borrowers = _db.Borrowers.ToList(),
-        //        Books = _db.Books.ToList()
-        //    };
-
-        //    return View("LendBookForm", lendBookFormViewModel);
-        //}
-
-
-        //[Authorize(Roles = RoleName.CanManage)]
-        public IActionResult DeleteLend(int id)
+        public async Task<IActionResult> Edit(int id)
         {
-            var lendInDb = _db.Lends.Single(l => l.Id == id);
-            if (lendInDb == null)
+            var lend = await _db.Lends
+                .Include(l => l.Borrower)
+                .Include(l => l.BookLends)
+                    .ThenInclude(bl => bl.Book)
+                .SingleOrDefaultAsync(l=>l.Id==id);
+            if (lend == null)
             {
-                NotFound();
+                return NotFound();
             }
-            else
+            BorrowersSelectList();
+            YesNoSelectList();
+            PopulateAssignedBooks(lend);
+            return View("LendForm", lend);
+        }
+
+        //[HttpPost]
+        //[ValidateAntiForgeryToken]
+        public async Task<IActionResult> Delete(int? id)
+        {
+            if (id == null)
             {
-                _db.Lends.Remove(lendInDb);
+                return NotFound();
             }
-            _db.SaveChanges();
+            Lend lend = await _db.Lends
+                .Include(l=>l.BookLends)
+                    .ThenInclude(bl=>bl.Book)
+                .Include(l => l.Borrower)
+                .SingleAsync(l => l.Id == id);
+            if (lend == null)
+            {
+                return NotFound();
+            }
+            _db.Lends.Remove(lend);
+            await _db.SaveChangesAsync();
             return RedirectToAction("Index", "Lends");
         }
 
-
-        //[Authorize(Roles = RoleName.CanManage)]
-        public IActionResult DeleteBookFromLend(int id)
-        {
-            var bookInLend = _db.Lends.Single(l => l.Id == id);
-            if (bookInLend == null)
-            {
-                NotFound();
-            }
-            else
-            {
-                _db.Lends.Remove(bookInLend);
-            }
-            _db.SaveChanges();
-            return RedirectToAction("Index", "Lends");
-        }
-
-        //[Authorize(Roles = RoleName.CanManage)]
+        //[ValidateAntiForgeryToken]
         [HttpPost]
-        public IActionResult Save(Lend lend)
+        public async Task<IActionResult> Save(int id, string[] selectedBooks, Lend lend)
         {
-            if (!ModelState.IsValid)
+            if (id == 0)
             {
-                var lendFormViewModel = new LendFormViewModel
+                if (selectedBooks != null)
                 {
-                    Borrower = new Borrower(),
-                    Books = _db.Books.ToList()
-                };
-                return View("LendForm", lendFormViewModel);
+                    lend.Borrower = await _db.Borrowers.SingleOrDefaultAsync(b => b.Id == lend.BorrowerId);
+                    lend.BookLends = new List<BookLend>();
+                    foreach (var book in selectedBooks)
+                    {
+                        var bookToAdd = new BookLend
+                        {
+                            BookId = int.Parse(book),
+                            LendId = lend.Id,
+                        };
+                        lend.BookLends.Add(bookToAdd);
+                    }
+                }
+                if (ModelState.IsValid)
+                {
+                    _db.Add(lend);
+                    await _db.SaveChangesAsync();
+                    return RedirectToAction("Index", "Lends");
+                }
+                PopulateAssignedBooks(lend);
+                return View("LendForm", lend);
+                //return Ok();
             }
-
-            if (lend.Id == 0)
+            else //id!=0
             {
-                lend.DateLent = DateTime.Today;
-                _db.Lends.Add(lend);
+                var lendInDb = await _db.Lends
+                    .Include(l => l.Borrower)
+                    .Include(l => l.BookLends)
+                        .ThenInclude(bl => bl.Book)
+                    .FirstOrDefaultAsync(l => l.Id == id);
+                if (ModelState.IsValid)
+                {
+                    var isUpdated = await TryUpdateModelAsync(lendInDb,"",l=>l.LendDate,l=>l.DueDate,l=>l.IsReturned,l=>l.ReturnDate);
+                    UpdateAssignedBooks(selectedBooks, lendInDb);
+                    await _db.SaveChangesAsync();
+                    return RedirectToAction("Index", "Lends");
+                }
+                PopulateAssignedBooks(lendInDb);
+                return View("LendForm", lend);
             }
-            else //lend.Id != 0
-            {
-                var lendInDb = _db.Lends.Single(l => l.Id == lend.Id);
-                lendInDb.BorrowerId = lend.BorrowerId;
-                //lendInDb.LendDetails = lend.LendDetails;
-            }
-            _db.SaveChanges();
-            return RedirectToAction("Index", "Lends");
         }
 
+        private  void PopulateAssignedBooks(Lend lend)
+        {
+            var allBooks = _db.Books;
+            var lendBooks = new HashSet<int>(lend.BookLends.Select(bl => bl.BookId));
+            var allBooksWAssInfo = new List<AssignedBookData>();
+            foreach (var book in allBooks)
+            {
+                allBooksWAssInfo.Add(new AssignedBookData
+                {
+                    BookId = book.Id,
+                    BookTitle = book.Title,
+                    IsAssigned = lendBooks.Contains(book.Id)
+                });
+            };
+            ViewData["Books"] = allBooksWAssInfo;
+        }
+
+        private void UpdateAssignedBooks(string[] selectedBooks, Lend lend)
+        {
+            if (selectedBooks == null)
+            {
+                lend.BookLends = new List<BookLend>();
+                return;
+            }
+            var selectedBooksHashSet = new HashSet<string>(selectedBooks);
+            var booksInLendHashSet = new HashSet<int>(lend.BookLends.Select(bl => bl.Book.Id));
+            foreach (var book in _db.Books)
+            {
+                if (selectedBooksHashSet.Contains(book.Id.ToString()))
+                {
+                    if (!booksInLendHashSet.Contains(book.Id))
+                    {
+                        lend.BookLends.Add(new BookLend
+                        {
+                            LendId = lend.Id,
+                            BookId = book.Id
+                        });
+                    }
+                }
+                else
+                {
+                    if (booksInLendHashSet.Contains(book.Id))
+                    {
+                        BookLend bookToRemove = lend.BookLends.FirstOrDefault(bl => bl.BookId == book.Id);
+                        _db.Remove(bookToRemove);
+                    }
+                }
+            }
+        }
+
+        public void BorrowersSelectList()
+        {
+            ViewData["Borrowers"] = new SelectList(_db.Borrowers.ToList(), "Id", "FullName");
+        }
+
+        public void YesNoSelectList()
+        {
+            ViewData["YesNoSelectList"] = new SelectList(new List<SelectListItem>
+            {
+                new SelectListItem { Value = "false", Text = "No" },
+                new SelectListItem { Value = "true" , Text = "Yes" }
+            }, 
+                "Value", "Text");
+        }
     }
 }

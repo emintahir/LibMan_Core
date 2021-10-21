@@ -11,7 +11,7 @@ namespace LibMan_Core.Models
     public class Book
     {
         [Key]
-        public int BookId { get; set; }
+        public int Id { get; set; }
 
         [Required]
         [StringLength(255)]
@@ -27,6 +27,8 @@ namespace LibMan_Core.Models
         public int? YearPublished { get; set; }
 
         [Display(Name = "Date Added:")]
+        [DataType(DataType.Date)]
+        [DisplayFormat(DataFormatString = "{0:yyyy-MM-dd}", ApplyFormatInEditMode = true)]
         [Required]
         public DateTime DateAddedToLibrary { get; set; }
 
@@ -40,7 +42,7 @@ namespace LibMan_Core.Models
         public IFormFile ImageFile { get; set; }
 
         [Display(Name = "Number of Pages")]
-        public int? Page { get; set; }
+        public int? Pages { get; set; }
 
         [Display(Name = "Number in Stock")]
         public int NumberInStock { get; set; }
@@ -48,8 +50,8 @@ namespace LibMan_Core.Models
         [Display(Name = "Category")]
         public int? CategoryId { get; set; }
 
-        public ICollection<Lend> Lends { get; set; }
-
         public Category Category { get; set; }
+
+        public ICollection<BookLend> BookLends { get; set; }
     }
 }
