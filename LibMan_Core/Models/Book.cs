@@ -3,8 +3,6 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace LibMan_Core.Models
 {
@@ -44,8 +42,11 @@ namespace LibMan_Core.Models
         [Display(Name = "Number of Pages")]
         public int? Pages { get; set; }
 
-        [Display(Name = "Number in Stock")]
-        public int NumberInStock { get; set; }
+        [Display(Name = "Total Copies:")]
+        public int CopiesOwned { get; set; }
+
+        [Display(Name = "Available Copies:")]
+        public int CopiesAvailable { get; set; }
 
         [Display(Name = "Category")]
         public int? CategoryId { get; set; }

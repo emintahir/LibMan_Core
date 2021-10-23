@@ -14,15 +14,21 @@
 else
 {
     <table id="books" class="table table-sm table-hover table-striped order-column cell-border">
-        <thead >
+        <thead>
             <tr>
-                <th>Author</th>
-                <th>Publisher</th>
-                <th>Year</th>
-                <th>Pages</th>
-                <th>Category</th>
-                <th>Image</th>
-                <th>Modify</th>
+                <th rowspan="2">Title</th>
+                <th rowspan="2">Author</th>
+                <th rowspan="2">Publisher</th>
+                <th rowspan="2">Year</th>
+                <th rowspan="2">Pages</th>
+                <th colspan="2">Copies</th>
+                <th rowspan="2">Category</th>
+                <th rowspan="2">Image</th>
+                <th rowspan="2">Modify</th>
+            </tr>
+            <tr>
+                <th>Total</th>
+                <th>Available</th>
             </tr>
         </thead>
         <tbody class="table-striped">
@@ -35,6 +41,8 @@ else
                 <td>@book.Publisher</td>
                 <td>@book.YearPublished</td>
                 <td>@book.Pages</td>
+                <td>@book.CopiesOwned</td>
+                <td>@book.CopiesAvailable</td>
                 <td>
                     @if (book.CategoryId == null)
                     {

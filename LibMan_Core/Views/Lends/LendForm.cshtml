@@ -66,10 +66,15 @@
                 <hr/>
                 <table id="books" class="table table-bordered table-hover display">
                     <thead>
-                    <tr>
-                        <th>Select</th>
-                        <th>Book Title</th>
-                    </tr>
+                        <tr>
+                            <th rowspan="2">Select</th>
+                            <th rowspan="2">Book Title</th>
+                            <th colspan="2">Copies</th>
+                        </tr>
+                        <tr>
+                            <th>Total</th>
+                            <th>Available</th>
+                        </tr>
                     </thead>
                     <tbody>
                     @{List<LibMan_Core.ViewModels.AssignedBookData> booksWA = ViewBag.Books;
@@ -80,9 +85,12 @@
                                     <input type="checkbox"
                                            name="selectedBooks"
                                            value="@book.BookId"
-                                           @Html.Raw(book.IsAssigned ? "checked=\"checked\"" : "")/>
+                                           @Html.Raw(book.IsAssigned ? "checked=\"checked\"" : "")
+                                           @Html.Raw(book.CopiesAvailable==0 ? "disabled=\"disabled\"" : "")/>
                                 </td>
                                 <td>@book.BookTitle</td>
+                                <td>@book.CopiesOwned</td>
+                                <td>@book.CopiesAvailable</td>
                             </tr>
                         }
                     }

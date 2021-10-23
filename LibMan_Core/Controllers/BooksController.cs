@@ -1,15 +1,12 @@
 ﻿using LibMan_Core.Data;
 using LibMan_Core.Models;
-using LibMan_Core.ViewModels;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using System.Linq;
 using System;
 using System.IO;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc.Rendering;
-using System.Collections.Generic;
 
 namespace LibMan_Core.Controllers
 {
@@ -83,10 +80,10 @@ namespace LibMan_Core.Controllers
                 return View("BookForm", newBook);
             }
             // New Book
-            if (book.Id == 0) 
+            if (book.Id == 0)
             {
                 // User selected to upload an image
-                if (book.ImageFile!=null) 
+                if (book.ImageFile != null)
                 {
                     UploadImage(book);
                     book.ImageName = GetNameForImageFile(book);
@@ -96,16 +93,17 @@ namespace LibMan_Core.Controllers
                 {
                     book.ImageName = null;
                 }
+                book.CopiesAvailable = book.CopiesOwned;
                 _db.Books.Add(book);
             }
             // Edit existing book (book.Id != 0 )
             else
             {
                 //The book has already an image
-                if (book.ImageName!=null)
+                if (book.ImageName != null)
                 {
                     //New Image selected to upload
-                    if (book.ImageFile!=null)
+                    if (book.ImageFile != null)
                     {
                         DeleteImageFile(book.ImageName);
                         UploadImage(book);
@@ -115,7 +113,7 @@ namespace LibMan_Core.Controllers
                     else
                     {
                         //If users selected to delete the image
-                        if (deleteImage=="on") 
+                        if (deleteImage == "on")
                         {
                             DeleteImageFile(book.ImageName);
                             book.ImageName = null;
@@ -128,10 +126,10 @@ namespace LibMan_Core.Controllers
                     }
                 }
                 //The book does not have any photo
-                else 
+                else
                 {
                     //New Image selected to upload
-                    if (book.ImageFile!=null) 
+                    if (book.ImageFile != null)
                     {
                         UploadImage(book);
                         book.ImageName = GetNameForImageFile(book);
@@ -159,7 +157,7 @@ namespace LibMan_Core.Controllers
                 {
                     DeleteImageFile(bookInDb.ImageName);
                 }
-                _db.Books.Remove(bookInDb);    
+                _db.Books.Remove(bookInDb);
             }
             await _db.SaveChangesAsync();
             return RedirectToAction("Index", "Books");

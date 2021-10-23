@@ -1,5 +1,3 @@
-using System;
-
 namespace LibMan_Core.Models
 {
     public class ErrorViewModel

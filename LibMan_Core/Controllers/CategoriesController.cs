@@ -1,12 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using LibMan_Core.Data;
+using LibMan_Core.Models;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.EntityFrameworkCore;
-using LibMan_Core.Data;
-using LibMan_Core.Models;
 
 namespace LibMan_Core.Controllers
 {

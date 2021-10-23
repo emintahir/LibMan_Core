@@ -1,17 +1,13 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using LibMan_Core.Data;
+using LibMan_Core.Models;
+using LibMan_Core.ViewModels;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using LibMan_Core.Data;
-using LibMan_Core.Models;
-using LibMan_Core.ViewModels;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
-using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace LibMan_Core.Controllers
 {
@@ -34,11 +30,11 @@ namespace LibMan_Core.Controllers
         public async Task<IActionResult> Index()
         {
             var lends = await _db.Lends
-                .Include(l=>l.Borrower)
-                .Include(l=>l.BookLends)
-                    .ThenInclude(bl=>bl.Book)
+                .Include(l => l.Borrower)
+                .Include(l => l.BookLends)
+                    .ThenInclude(bl => bl.Book)
                         .ToListAsync();
-            return View("Index",lends);
+            return View("Index", lends);
         }
 
         public async Task<IActionResult> Details(int? id)
@@ -61,8 +57,8 @@ namespace LibMan_Core.Controllers
         {
             var lend = new Lend
             {
-                LendDate = DateTime.Today, 
-                DueDate = DateTime.Today.AddDays(10), 
+                LendDate = DateTime.Today,
+                DueDate = DateTime.Today.AddDays(10),
                 BookLends = new List<BookLend>(),
                 Borrower = new Borrower()
             };
@@ -78,7 +74,7 @@ namespace LibMan_Core.Controllers
                 .Include(l => l.Borrower)
                 .Include(l => l.BookLends)
                     .ThenInclude(bl => bl.Book)
-                .SingleOrDefaultAsync(l=>l.Id==id);
+                .SingleOrDefaultAsync(l => l.Id == id);
             if (lend == null)
             {
                 return NotFound();
@@ -98,8 +94,8 @@ namespace LibMan_Core.Controllers
                 return NotFound();
             }
             Lend lend = await _db.Lends
-                .Include(l=>l.BookLends)
-                    .ThenInclude(bl=>bl.Book)
+                .Include(l => l.BookLends)
+                    .ThenInclude(bl => bl.Book)
                 .Include(l => l.Borrower)
                 .SingleAsync(l => l.Id == id);
             if (lend == null)
@@ -107,6 +103,10 @@ namespace LibMan_Core.Controllers
                 return NotFound();
             }
             _db.Lends.Remove(lend);
+            foreach (var book in lend.BookLends)
+            {
+                book.Book.CopiesAvailable++;
+            }
             await _db.SaveChangesAsync();
             return RedirectToAction("Index", "Lends");
         }
@@ -123,13 +123,16 @@ namespace LibMan_Core.Controllers
                     lend.BookLends = new List<BookLend>();
                     foreach (var book in selectedBooks)
                     {
-                        var bookToAdd = new BookLend
+                        var bookLendToAdd = new BookLend
                         {
                             BookId = int.Parse(book),
                             LendId = lend.Id,
                         };
-                        lend.BookLends.Add(bookToAdd);
+                        lend.BookLends.Add(bookLendToAdd);
+                        var bookInDb =  await _db.Books.SingleOrDefaultAsync(b => b.Id == bookLendToAdd.BookId);
+                        bookInDb.CopiesAvailable--;
                     }
+                    
                 }
                 if (ModelState.IsValid)
                 {
@@ -150,7 +153,7 @@ namespace LibMan_Core.Controllers
                     .FirstOrDefaultAsync(l => l.Id == id);
                 if (ModelState.IsValid)
                 {
-                    var isUpdated = await TryUpdateModelAsync(lendInDb,"",l=>l.LendDate,l=>l.DueDate,l=>l.IsReturned,l=>l.ReturnDate);
+                    var isUpdated = await TryUpdateModelAsync(lendInDb, "", l => l.LendDate, l => l.DueDate, l => l.IsReturned, l => l.ReturnDate);
                     UpdateAssignedBooks(selectedBooks, lendInDb);
                     await _db.SaveChangesAsync();
                     return RedirectToAction("Index", "Lends");
@@ -160,7 +163,7 @@ namespace LibMan_Core.Controllers
             }
         }
 
-        private  void PopulateAssignedBooks(Lend lend)
+        private void PopulateAssignedBooks(Lend lend)
         {
             var allBooks = _db.Books;
             var lendBooks = new HashSet<int>(lend.BookLends.Select(bl => bl.BookId));
@@ -169,9 +172,11 @@ namespace LibMan_Core.Controllers
             {
                 allBooksWAssInfo.Add(new AssignedBookData
                 {
+                    IsAssigned = lendBooks.Contains(book.Id),
                     BookId = book.Id,
                     BookTitle = book.Title,
-                    IsAssigned = lendBooks.Contains(book.Id)
+                    CopiesOwned = book.CopiesOwned,
+                    CopiesAvailable = book.CopiesAvailable
                 });
             };
             ViewData["Books"] = allBooksWAssInfo;
@@ -197,6 +202,7 @@ namespace LibMan_Core.Controllers
                             LendId = lend.Id,
                             BookId = book.Id
                         });
+                        book.CopiesAvailable--;
                     }
                 }
                 else
@@ -205,6 +211,7 @@ namespace LibMan_Core.Controllers
                     {
                         BookLend bookToRemove = lend.BookLends.FirstOrDefault(bl => bl.BookId == book.Id);
                         _db.Remove(bookToRemove);
+                        book.CopiesAvailable++;
                     }
                 }
             }
@@ -221,7 +228,7 @@ namespace LibMan_Core.Controllers
             {
                 new SelectListItem { Value = "false", Text = "No" },
                 new SelectListItem { Value = "true" , Text = "Yes" }
-            }, 
+            },
                 "Value", "Text");
         }
     }

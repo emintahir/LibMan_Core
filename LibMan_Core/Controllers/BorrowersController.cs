@@ -1,13 +1,8 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using LibMan_Core.Data;
+﻿using LibMan_Core.Data;
 using LibMan_Core.Models;
-using LibMan_Core.ViewModels;
-using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Threading.Tasks;
 
 namespace LibMan_Core.Controllers
 {
@@ -92,7 +87,7 @@ namespace LibMan_Core.Controllers
                 NotFound();
             }
             else
-            { 
+            {
                 _db.Borrowers.Remove(borrowerInDb);
             }
             await _db.SaveChangesAsync();

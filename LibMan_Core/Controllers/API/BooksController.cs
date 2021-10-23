@@ -1,13 +1,9 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using System.Threading.Tasks;
-using LibMan_Core.Data;
+﻿using LibMan_Core.Data;
 using LibMan_Core.Models;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace LibMan_Core.Controllers.API
 {
@@ -74,7 +70,7 @@ namespace LibMan_Core.Controllers.API
             bookInDb.Author = book.Author;
             bookInDb.Publisher = book.Publisher;
             bookInDb.ImageName = book.ImageName;
-            bookInDb.NumberInStock = book.NumberInStock;
+            bookInDb.CopiesOwned = book.CopiesOwned;
             bookInDb.YearPublished = book.YearPublished;
             bookInDb.Pages = book.Pages;
             bookInDb.CategoryId = book.CategoryId;

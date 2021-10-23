@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace LibMan_Core.Migrations
 {
-    public partial class First : Migration
+    public partial class CopiesPropAdded : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -124,8 +124,8 @@ namespace LibMan_Core.Migrations
                 name: "AspNetUserLogins",
                 columns: table => new
                 {
-                    LoginProvider = table.Column<string>(maxLength: 128, nullable: false),
-                    ProviderKey = table.Column<string>(maxLength: 128, nullable: false),
+                    LoginProvider = table.Column<string>(nullable: false),
+                    ProviderKey = table.Column<string>(nullable: false),
                     ProviderDisplayName = table.Column<string>(nullable: true),
                     UserId = table.Column<string>(nullable: false)
                 },
@@ -169,8 +169,8 @@ namespace LibMan_Core.Migrations
                 columns: table => new
                 {
                     UserId = table.Column<string>(nullable: false),
-                    LoginProvider = table.Column<string>(maxLength: 128, nullable: false),
-                    Name = table.Column<string>(maxLength: 128, nullable: false),
+                    LoginProvider = table.Column<string>(nullable: false),
+                    Name = table.Column<string>(nullable: false),
                     Value = table.Column<string>(nullable: true)
                 },
                 constraints: table =>
@@ -221,7 +221,8 @@ namespace LibMan_Core.Migrations
                     BookLocAtLibrary = table.Column<string>(nullable: true),
                     ImageName = table.Column<string>(nullable: true),
                     Pages = table.Column<int>(nullable: true),
-                    NumberInStock = table.Column<int>(nullable: false),
+                    CopiesOwned = table.Column<int>(nullable: false),
+                    CopiesAvailable = table.Column<int>(nullable: false),
                     CategoryId = table.Column<int>(nullable: true)
                 },
                 constraints: table =>
