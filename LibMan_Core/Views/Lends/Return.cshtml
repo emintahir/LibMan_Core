@@ -1,0 +1,85 @@
+﻿@model LibMan_Core.Models.Lend
+
+@{
+    ViewData["Title"] = "Return Lend";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h1>Return Lend</h1>
+<hr />
+<div>
+    <h4>Are you sure you want to return the following lend?</h4>
+    <dl class="row">
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.Borrower.FullName)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.Borrower.FullName)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.LendDate)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.LendDate)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.DueDate)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.DueDate)
+        </dd>
+        <dt class="col-sm-2">
+            Over Due Day(s)
+        </dt>
+        <dd class="col-sm-10">
+            @if (!Model.IsReturned && (DateTime.Today > Model.DueDate))
+            {
+                var overDueDays = (DateTime.Today - Model.DueDate).Days.ToString();
+                @overDueDays
+            }
+            else if (Model.IsReturned && (Model.ReturnDate.Value.Date > Model.DueDate.Date))
+            {
+                var overDueDays = (Model.ReturnDate - Model.DueDate).Value.Days.ToString();
+                @overDueDays
+            }
+            else
+            {
+                <p>-</p>
+            }
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.BookLends)
+        </dt>
+        <dd class="col-sm-10">
+            <ul>
+                @foreach (var book in Model.BookLends)
+                {
+                    <li>@book.Book.Title</li>
+                }
+            </ul>
+        </dd>
+    </dl>
+    <div class="row">
+        <div class="col-md-6">
+            <form asp-controller="Lends" asp-action="Save" asp-route-id="@Model.Id">
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                <input type="hidden" asp-for="BorrowerId" />
+                <input type="hidden" asp-for="LendDate" />
+                <input type="hidden" asp-for="DueDate" />
+                <input type="hidden" asp-for="IsReturned" />
+                <div class="form-group">
+                    <label asp-for="ReturnDate" class="control-label"></label>
+                    <input asp-for="ReturnDate" class="form-control" />
+                    <span asp-validation-for="ReturnDate" class="text-danger"></span>
+                </div>
+                <input type="submit" value="Return" class="btn btn-success" /> |
+                <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary">Edit</a> |
+                <a asp-action="Index">Back to List</a>
+            </form>
+        </div>
+    </div>
+
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}}

@@ -33,23 +33,27 @@ namespace LibMan_Core.Controllers
                 .Include(l => l.Borrower)
                 .Include(l => l.BookLends)
                     .ThenInclude(bl => bl.Book)
-                        .ToListAsync();
+                .ToListAsync();
             return View("Index", lends);
         }
 
-        public async Task<IActionResult> Details(int? id)
+        public async Task<IActionResult> Return(int? id)
         {
             if (id == null)
             {
                 return NotFound();
             }
-
-            var lend = await _db.Lends.FirstOrDefaultAsync(l => l.Id == id);
+            Lend lend = await _db.Lends
+                .Include(l => l.BookLends)
+                    .ThenInclude(bl => bl.Book)
+                .Include(l => l.Borrower)
+                .SingleAsync(l => l.Id == id);
             if (lend == null)
             {
                 return NotFound();
             }
-
+            lend.ReturnDate = DateTime.Today;
+            lend.IsReturned = true;
             return View(lend);
         }
 
@@ -103,46 +107,53 @@ namespace LibMan_Core.Controllers
                 return NotFound();
             }
             _db.Lends.Remove(lend);
-            foreach (var book in lend.BookLends)
+            if (!lend.IsReturned)
             {
-                book.Book.CopiesAvailable++;
+                foreach (var book in lend.BookLends)
+                {
+                    book.Book.CopiesAvailable++;
+                }
             }
+           
             await _db.SaveChangesAsync();
             return RedirectToAction("Index", "Lends");
         }
 
         //[ValidateAntiForgeryToken]
-        [HttpPost]
+        //[HttpPost]
         public async Task<IActionResult> Save(int id, string[] selectedBooks, Lend lend)
         {
             if (id == 0)
             {
-                if (selectedBooks != null)
-                {
-                    lend.Borrower = await _db.Borrowers.SingleOrDefaultAsync(b => b.Id == lend.BorrowerId);
-                    lend.BookLends = new List<BookLend>();
-                    foreach (var book in selectedBooks)
-                    {
-                        var bookLendToAdd = new BookLend
-                        {
-                            BookId = int.Parse(book),
-                            LendId = lend.Id,
-                        };
-                        lend.BookLends.Add(bookLendToAdd);
-                        var bookInDb =  await _db.Books.SingleOrDefaultAsync(b => b.Id == bookLendToAdd.BookId);
-                        bookInDb.CopiesAvailable--;
-                    }
-                    
-                }
                 if (ModelState.IsValid)
                 {
-                    _db.Add(lend);
-                    await _db.SaveChangesAsync();
-                    return RedirectToAction("Index", "Lends");
+                    if (selectedBooks.Any())
+                    {
+                        lend.Borrower = await _db.Borrowers.SingleOrDefaultAsync(b => b.Id == lend.BorrowerId);
+                        lend.BookLends = new List<BookLend>();
+                        foreach (var book in selectedBooks)
+                        {
+                            var bookLendToAdd = new BookLend
+                            {
+                                BookId = int.Parse(book),
+                                LendId = lend.Id,
+                            };
+                            lend.BookLends.Add(bookLendToAdd);
+                            if (!lend.IsReturned)
+                            {
+                                var bookInDb = await _db.Books.SingleOrDefaultAsync(b => b.Id == bookLendToAdd.BookId);
+                                bookInDb.CopiesAvailable--;
+                            }
+                        }
+                        if (ModelState.IsValid)
+                        {
+                            _db.Add(lend);
+                            await _db.SaveChangesAsync();
+                            return RedirectToAction("Index", "Lends");
+                        }
+                    }
                 }
-                PopulateAssignedBooks(lend);
-                return View("LendForm", lend);
-                //return Ok();
+                return RedirectToAction("New", "Lends");
             }
             else //id!=0
             {
@@ -153,8 +164,23 @@ namespace LibMan_Core.Controllers
                     .FirstOrDefaultAsync(l => l.Id == id);
                 if (ModelState.IsValid)
                 {
-                    var isUpdated = await TryUpdateModelAsync(lendInDb, "", l => l.LendDate, l => l.DueDate, l => l.IsReturned, l => l.ReturnDate);
-                    UpdateAssignedBooks(selectedBooks, lendInDb);
+                    if (lend.IsReturned)
+                    {
+                        var booksInLendHS = new HashSet<int>(lendInDb.BookLends.Select(bl => bl.BookId));
+                        foreach (var book in booksInLendHS)
+                        {
+                            var bookInDb = await _db.Books.SingleAsync(b => b.Id == book);
+                            bookInDb.CopiesAvailable++;
+                        }
+                        lendInDb.IsReturned = true;
+                        lendInDb.ReturnDate = lend.ReturnDate;
+                        _db.Lends.Update(lendInDb);
+                    }
+                    else
+                    {
+                        await TryUpdateModelAsync(lendInDb, "", l => l.LendDate, l => l.DueDate, l => l.IsReturned, l => l.ReturnDate);
+                        UpdateAssignedBooks(selectedBooks, lendInDb);
+                    }                    
                     await _db.SaveChangesAsync();
                     return RedirectToAction("Index", "Lends");
                 }

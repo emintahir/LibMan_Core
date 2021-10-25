@@ -10,6 +10,7 @@ namespace LibMan_Core.Models
         public int Id { get; set; }
 
         [Required]
+        [Display(Name = "Borrower:")]
         public int BorrowerId { get; set; }
 
         public Borrower Borrower { get; set; }
@@ -34,6 +35,7 @@ namespace LibMan_Core.Models
         [DisplayFormat(DataFormatString = "{0:yyyy-MM-dd}", ApplyFormatInEditMode = true)]
         public DateTime? ReturnDate { get; set; }
 
+        [Display(Name = "Books In The Lend:")]
         public ICollection<BookLend> BookLends { get; set; }
     }
 }

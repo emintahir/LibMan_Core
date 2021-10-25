@@ -22,6 +22,7 @@ namespace LibMan_Core.Models
         [Display(Name = "Surname")]
         public string Surname { get; set; }
 
+        [Required]
         [Display(Name = "Date of Birth")]
         [DataType(DataType.Date)]
         [DisplayFormat(DataFormatString = "{0:yyyy-MM-dd}", ApplyFormatInEditMode = true)]
@@ -39,7 +40,7 @@ namespace LibMan_Core.Models
 
         public ICollection<Lend> Lends { get; set; }
 
-        [Display(Name = "Name & Surname")]
+        [Display(Name = "Borrower")]
         public string FullName => Name + " " + Surname;
     }
 }

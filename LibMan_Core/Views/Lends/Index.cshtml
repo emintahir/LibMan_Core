@@ -5,9 +5,7 @@
 }
 
 <h2>Lend List</h2>
-
 <br />
-
 <p>
     <a type="button" class="btn btn-primary" asp-action="New" asp-controller="Lends">Add New Lend</a>
 </p>
@@ -20,7 +18,7 @@ else
     <table id="lends" class="table table-sm table-hover table-striped order-column cell-border">
         <thead>
         <tr>
-            <th>No</th>
+            <th>#</th>
             <th>Borrower</th>
             <th>Book(s)</th>
             <th>Date Lent</th>
@@ -65,7 +63,14 @@ else
                     }
                 </td>
                 <td>
-                    <a asp-action="Details" asp-controller="Lends" asp-route-id="@lend.Id">Details</a> /
+                    @if (!lend.IsReturned)
+                    {
+                        <a asp-action="Return" asp-controller="Lends" asp-route-id="@lend.Id" >Return</a> @:/
+                    }
+                    else
+                    {
+                        <a class="disabled">Return</a> @:/
+                    }
                     <a asp-action="Edit" asp-controller="Lends" asp-route-id="@lend.Id">Edit</a> /
                     <a asp-action="Delete" asp-controller="Lends" asp-route-id="@lend.Id" onclick="javascript:return confirm('Are you sure you want to delete this Lend?');">Delete</a>
                 </td>
@@ -74,8 +79,6 @@ else
         </tbody>
     </table>
 }
-
-
 @section scripts
 {
     <script src="~/lib/datatables/js/jquery.dataTables.js"></script>

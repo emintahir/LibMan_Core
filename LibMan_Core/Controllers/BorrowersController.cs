@@ -2,6 +2,7 @@
 using LibMan_Core.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System;
 using System.Threading.Tasks;
 
 namespace LibMan_Core.Controllers
@@ -40,7 +41,9 @@ namespace LibMan_Core.Controllers
 
         public IActionResult New()
         {
-            var borrower = new Borrower();
+            var borrower = new Borrower {
+                BirthDate = Convert.ToDateTime("1900-01-01")
+            };
             return View("BorrowerForm", borrower);
         }
 
@@ -77,7 +80,6 @@ namespace LibMan_Core.Controllers
             return RedirectToAction("Index", "Borrowers");
         }
 
-        //[HttpDelete]
         //[ValidateAntiForgeryToken]
         public async Task<IActionResult> Delete(int id)
         {

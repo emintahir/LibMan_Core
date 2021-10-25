@@ -1,6 +1,5 @@
 ﻿@model Book
 
-
 @{
     ViewData["Title"] = "BookForm";
     Layout = "~/Views/Shared/_Layout.cshtml";
@@ -91,29 +90,31 @@
                 }
             </div>
             <input asp-for="Id" type="hidden" />
-            <button type="submit" class="btn btn-success" onclick="javascript:return confirm('Are you sure you want to save your changes?');">Save</button>
+            <button type="submit" class="btn btn-success">Save</button>
         </form>
     </div>
 </div>
 
+@* onclick="javascript:return confirm('Are you sure you want to save your changes?');" *@
 @section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
     <script src="~/lib/select2/js/select2.min.js"></script>
     <script>
         $(document).ready(function () {
             $("#selCategories").select2();
         });
 
-        $("#checkbox").click(function() {
+        $("#checkbox").click(function () {
             if (this.checked) {
                 $("#ImageFile").attr("disabled", true);
-                $("#bookImage").attr("disabled",true);
+                $("#bookImage").attr("disabled", true);
             } else {
                 $("#ImageFile").removeAttr("disabled");
                 $("#bookImage").removeAttr("disabled");
             };
         });
 
-        $(function() {
+        $(function () {
             $('[data-toggle="tooltip"]').tooltip();
         });
     </script>
