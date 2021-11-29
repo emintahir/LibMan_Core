@@ -1,4 +1,5 @@
-# LibMan_Core
+# <img src="/LibMan_Core/wwwroot/img/Logo.png" width="300" />
+
 Library Management Tool (.NET Core)
 
 About the App:
@@ -7,6 +8,8 @@ Book: The user can view the list of books and update their information or remove
 Category: The user can define or modify the category of the books. Each book can have one category (One-to-One relationship).
 Borrower: In this part user can view, register or modify the Borrowers.
 Lend: In this section user can view the list of lends and modify them. Each borrower can have many lends and in each lend the borrower can borrow multiple books (Many-to-Many relationship).
+
+<img src="/LibMan_Core/wwwroot/img/diagram.png"/>
 
 jQuery plugins
 I used the following plugins in my project:
